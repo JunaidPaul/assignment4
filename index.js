@@ -37,17 +37,56 @@ router.get('/', function(req, res) {
 });
 
 router.post('/', function(req, res) {
+    var isThere = [];
     var hashtag = new Hashtag();
     hashtag.name = validator.escape(req.body.name);
-    console.log(req.body.name);
-    hashtag.created_at = new Date();
-    hashtag.save(function (err) {
-        if (err) {
-            res.send(err);
+    hashtag.value = validator.escape(req.body.value);
+    Hashtag.find({name: validator.escape(req.body.name)},{name:1,value:1,__id:1},function(err, names){
+        if(err){
+            console.log(err);
         }
-        res.json({message: "done"});
+      isThere = names.slice();
+        console.log(isThere);
     });
+    setTimeout(function() {
+        if(isThere.length == 0){
+            console.log("is null");
+            hashtag.created_at = new Date();
+            hashtag.save(function (err) {
+                if (err) {
+                    res.send(err);
+                }
+                res.json({message: "done"});
+            });
+        }else{
+            console.log("is not  null");
+            console.log(isThere[0]["_id"]);
+            console.log(validator.escape(req.body.value));
+            Hashtag.update({_id: isThere[0]["_id"]}, {$set: {value: validator.escape(req.body.value)}}, { multi: false }, function(err, data){
+                if(err){
+                    res.send(err);
+                }
+                console.log(data);
+                res.json({message: "done"});
+            });
+
+        }
+    }, 5000);
+
+
 });
+//router.post('/', function(req, res) {
+//    var hashtag = new Hashtag();
+//    hashtag.name = validator.escape(req.body.name);
+//    hashtag.value = validator.escape(req.body.value);
+//    hashtag.created_at = new Date();
+//    hashtag.save(function (err) {
+//        if (err) {
+//            res.send(err);
+//        }
+//        res.json({message: "done"});
+//    });
+//});
 router.put('/:id', function(req, res){
     var id = validator.toString(req.body.id);
     var name = validator.sanitize(req.body.name);
